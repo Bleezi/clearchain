@@ -124,22 +124,54 @@ func (app *Ledger) CheckTx(txBytes []byte) (res abci.Result) {
 }
 
 // Query handles queryTx
-func (app *Ledger) Query(query []byte) (res abci.Result) {
+func (app *Ledger) Query(reqQuery abci.RequestQuery) (res abci.ResponseQuery) {
+	
+	query := reqQuery.Data;
 	if len(query) == 0 {
-		return abci.ErrEncodingError.SetLog("Query cannot be zero length")
+		
+		return  abci.ResponseQuery{
+											Code: abci.CodeType_EncodingError,
+											Log: "Query cannot be zero length",
+									}
+		//return abci.ErrEncodingError.SetLog("Query cannot be zero length")
 	}
 	typeByte := query[0]
 	query = query[1:]
 	switch typeByte {
 	case types.TxTypeQueryAccount, types.TxTypeQueryAccountIndex, types.TxTypeLegalEntity, types.TxTypeQueryLegalEntityIndex:
-		return app.executeQueryTx(query)
+		
+		result := app.executeQueryTx(query)
+		return  abci.ResponseQuery{
+											Code: result.Code,
+											Log: result.Log,
+											Value: result.Data, 
+									}
+		//return app.executeQueryTx(query)
 	case PluginTypeByteBase:
-		return abci.OK.SetLog("This type of query not yet supported")
+		
+		return  abci.ResponseQuery{
+											Code: abci.CodeType_OK,
+											Log: "This type of query not yet supported",
+									}
+		//return abci.OK.SetLog("This type of query not yet supported")
 	case PluginTypeByteEyes:
-		return app.eyesCli.QuerySync(query)
+		// return app.eyesCli.QuerySync(query)
+		queryBytes, _ :=  app.eyesCli.QuerySync(abci.RequestQuery{
+											Data:   query,
+											Path:   "/key", // TOOD expose
+											Height: 0,        // TODO expose
+											//Prove:  true,     // TODO expose
+										})
+		return queryBytes
 	}
-	return abci.ErrBaseUnknownPlugin.SetLog(
-		common.Fmt("Unknown plugin with type byte %X", typeByte))
+	
+	return  abci.ResponseQuery{
+											Code: abci.CodeType_BaseUnknownPlugin,
+											Log: common.Fmt("Unknown plugin with type byte %X", typeByte),
+									}
+	
+	//return abci.ErrBaseUnknownPlugin.SetLog(
+	//	common.Fmt("Unknown plugin with type byte %X", typeByte))
 }
 
 // Commit handles commitTx

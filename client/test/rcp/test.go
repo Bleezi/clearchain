@@ -27,14 +27,14 @@ func main() {
 	txs := []byte{tx.TxType()}
 	txs = append(txs, wire.BinaryBytes(struct{ types.Tx }{tx})...)
 
-	httpClient := rpc.New("127.0.0.1:46657", "")
-	result, err := httpClient.ABCIQuery(txs)
+	httpClient := rpc.NewClient("127.0.0.1:46657", "")
+	result, err := httpClient.ABCIQuery("/key", txs, false)
 	if err != nil {
 		panic(err.Error())
 	}
 
 	var returned *types.AccountsReturned
-	err = json.Unmarshal(result.Result.Data, &returned)
+	err = json.Unmarshal(result.Response.Value, &returned)
 	if err != nil {
 		panic(fmt.Sprintf("JSON unmarshal for message %v failed with: %v ", returned, err))
 	}

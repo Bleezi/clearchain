@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"reflect"
+	
 
 	"github.com/tendermint/abci/server"
 	"github.com/tendermint/clearchain/app"
@@ -12,18 +13,18 @@ import (
 	eyes "github.com/tendermint/merkleeyes/client"
 )
 
+const EyesCacheSize = 10000
+
 func main() {
 
 	addrPtr := flag.String("address", "tcp://0.0.0.0:46658", "Listen address")
-	eyesPtr := flag.String("eyes", "local", "MerkleEyes address, or 'local' for embedded")
+	//eyesPtr := flag.String("eyes", "local", "MerkleEyes address, or 'local' for embedded")
 	genFilePath := flag.String("genesis", "", "Genesis file, if any")
 	flag.Parse()
 
 	// Connect to MerkleEyes
-	eyesCli, err := eyes.NewClient(*eyesPtr, "socket")
-	if err != nil {
-		common.Exit("connect to MerkleEyes: " + err.Error())
-	}
+	eyesCli := eyes.NewLocalClient("tmp/merkleeyes.db", EyesCacheSize)
+	
 
 	// Create Clearing app
 	app := app.NewLedger(eyesCli)

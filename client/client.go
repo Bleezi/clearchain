@@ -171,12 +171,18 @@ func sendQuery(privateKey crypto.PrivKey, tx types.SignedTx) abci.Result {
 		return result
 	}
 
-	resultABCI, err := httpClient.ABCIQuery(txBytes)
+	resultABCI, err := httpClient.ABCIQuery("/key", txBytes, false)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	return resultABCI.Result
+	resultQuery := abci.Result {
+		Code: resultABCI.Response.Code,
+		Data: resultABCI.Response.Value,
+		Log: resultABCI.Response.Log,
+	}
+
+	return resultQuery
 }
 
 func sendDeliverTxSync(privateKey crypto.PrivKey, tx types.SignedTx) abci.Result {
@@ -222,7 +228,7 @@ func getTXBytes(privateKey crypto.PrivKey, tx types.SignedTx, isQuery bool) (txs
 // StartClient is a convenience function to start the client app
 func StartClient(serverAddress string) {
 	//serverAddress := "127.0.0.1:46657"
-	httpClient = rpc.New(serverAddress, "")
+	httpClient = rpc.NewClient(serverAddress, "")
 
 	log.Info("Tendermint server connection established to " + serverAddress)
 }
