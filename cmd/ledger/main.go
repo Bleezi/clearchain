@@ -17,6 +17,7 @@ const EyesCacheSize = 10000
 
 func main() {
 
+	fmt.Println("Starting Clearchain...")
 	addrPtr := flag.String("address", "tcp://0.0.0.0:46658", "Listen address")
 	//eyesPtr := flag.String("eyes", "local", "MerkleEyes address, or 'local' for embedded")
 	genFilePath := flag.String("genesis", "", "Genesis file, if any")
@@ -30,6 +31,7 @@ func main() {
 	app := app.NewLedger(eyesCli)
 
 	// If genesis file was specified, set key-value options
+	fmt.Println("genesis filePath: " +  *genFilePath)
 	if *genFilePath != "" {
 		kvz := loadGenesis(*genFilePath)
 		for _, kv := range kvz {
